@@ -44,13 +44,11 @@ pub fn day3() {
     let mut i = 0;
 
     while i < lines.len() {
-        println!("{} {}", i, lines.len());
         let a = lines[i];
         let b = lines[i + 1];
         let c = lines[i + 2];
 
         for (_, d) in a.chars().enumerate() {
-            println!("{} {} {} {}", a, b, c, d);
             if b.contains(d) && c.contains(d) {
                 badge_sum += if d.is_lowercase() {
                     d as u32 - 'a' as u32 + 1
@@ -65,12 +63,6 @@ pub fn day3() {
     }
 
     let sum: u32 = dups.iter().map(|d| d.unwrap().1).sum();
-
-    for (i, d) in dups.iter().enumerate() {
-        if let Some((c, n)) = d {
-            println!("{}: {} - {}", i, c, n);
-        }
-    }
 
     println!("Day 3: {} {}", sum, badge_sum);
 }
