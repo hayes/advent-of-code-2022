@@ -1,12 +1,10 @@
 use std::collections::HashSet;
 
 const INPUT: &str = include_str!("input.txt");
-const LINE_LENGTH: i64 = 1_000;
-const START: i64 = (LINE_LENGTH * LINE_LENGTH / 2) + LINE_LENGTH / 2;
 
 enum Move {
-    Horizontal(i64),
-    Vertical(i64),
+    Horizontal(i32),
+    Vertical(i32),
 }
 
 pub fn day9() {
@@ -16,7 +14,7 @@ pub fn day9() {
         .map(|line| {
             let mut parts = line.split(" ");
             let direction = parts.next().unwrap();
-            let distance = parts.next().unwrap().parse::<i64>().unwrap();
+            let distance = parts.next().unwrap().parse::<i32>().unwrap();
 
             match direction {
                 "R" => Move::Horizontal(distance),
@@ -28,41 +26,29 @@ pub fn day9() {
         })
         .collect();
 
-    let mut head: i64 = START;
-    let mut tail: i64 = head;
+    let mut rope = vec![(0, 0); 10];
+    let mut visited_1: HashSet<(i32, i32)> = HashSet::new();
+    let mut visited_2: HashSet<(i32, i32)> = HashSet::new();
 
-    let mut rope = vec![head; 9];
-    let mut visited_1: HashSet<i64> = HashSet::new();
-    let mut visited_2: HashSet<i64> = HashSet::new();
-    visited_2.insert(tail);
+    visited_1.insert(rope[0]);
+    visited_2.insert(rope[0]);
 
     for m in moves {
-        let distance;
-        let size;
-
-        match m {
-            Move::Horizontal(d) => {
-                distance = d;
-                size = 1;
-            }
-            Move::Vertical(d) => {
-                distance = d;
-                size = LINE_LENGTH;
-            }
-        }
+        let (distance, horizontal) = match m {
+            Move::Horizontal(d) => (d, true),
+            Move::Vertical(d) => (d, false),
+        };
 
         for _ in 0..distance.abs() {
-            head += if distance > 0 { size } else { -size };
-            let new_tail = calculate_position(head, tail);
-
-            if new_tail != tail {
-                visited_1.insert(new_tail);
-                tail = new_tail
+            if horizontal {
+                rope[0].0 += if distance > 0 { 1 } else { -1 }
+            } else {
+                rope[0].1 += if distance > 0 { 1 } else { -1 }
             }
 
-            let mut current = head;
+            let mut current = rope[0];
 
-            for i in 0..9 {
+            for i in 1..10 {
                 let knot = rope[i];
                 let new_location = calculate_position(current, knot);
 
@@ -73,38 +59,33 @@ pub fn day9() {
                     break;
                 }
             }
-            visited_2.insert(rope[8]);
+            visited_1.insert(rope[0]);
+            visited_2.insert(rope[9]);
         }
     }
 
     println!("Day 9: {} {}", visited_1.len(), visited_2.len());
 }
 
-fn calculate_position(head: i64, tail: i64) -> i64 {
-    let head_h = head % LINE_LENGTH;
-    let tail_h: i64 = tail % LINE_LENGTH;
-    let head_v = head / LINE_LENGTH;
-    let tail_v: i64 = tail / LINE_LENGTH;
-
-    let h_offset = head_h - tail_h;
-    let v_offset = head_v - tail_v;
+fn calculate_position(head: (i32, i32), tail: (i32, i32)) -> (i32, i32) {
+    let mut new_tail = tail.clone();
+    let h_offset = head.0 - tail.0;
+    let v_offset = head.1 - tail.1;
 
     let min_h = if v_offset > 1 || v_offset < -1 { 0 } else { 1 };
     let min_v = if h_offset > 1 || h_offset < -1 { 0 } else { 1 };
 
-    let mut offset = 0;
-
     if h_offset > min_h {
-        offset += 1;
+        new_tail.0 += 1;
     } else if h_offset < -min_h {
-        offset -= 1;
+        new_tail.0 -= 1;
     }
 
     if v_offset > min_v {
-        offset += LINE_LENGTH;
+        new_tail.1 += 1;
     } else if v_offset < -min_v {
-        offset -= LINE_LENGTH;
+        new_tail.1 -= 1;
     }
 
-    tail + offset
+    new_tail
 }
