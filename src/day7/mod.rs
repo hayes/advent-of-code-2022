@@ -42,7 +42,6 @@ pub fn day7() {
         .collect::<Vec<InputLine>>();
 
     let mut dir_sizes: HashMap<String, u32> = HashMap::new();
-    // let println!("Day 7: {} {}");
 
     let root_size = parse_dir(&mut dir_sizes, &mut input.iter(), "".to_string());
 

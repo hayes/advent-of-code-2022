@@ -6,6 +6,8 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
+mod day9;
 
 fn main() {
     let day = env::args().nth(1).unwrap_or("1".to_string());
@@ -19,6 +21,8 @@ fn main() {
         "5" => day5::day5(),
         "6" => day6::day6(),
         "7" => day7::day7(),
+        "8" => day8::day8(),
+        "9" => day9::day9(),
         _ => println!("Please enter a valid day, saw: {}", day),
     }
 
