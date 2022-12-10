@@ -1,5 +1,6 @@
 use std::{env, time::Instant};
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -23,6 +24,7 @@ fn main() {
         "7" => day7::day7(),
         "8" => day8::day8(),
         "9" => day9::day9(),
+        "10" => day10::day10(),
         _ => println!("Please enter a valid day, saw: {}", day),
     }
 
