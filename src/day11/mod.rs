@@ -5,11 +5,11 @@ const INPUT: &str = include_str!("input.txt");
 #[derive(Debug, Clone, Copy)]
 enum OperationValue {
     Old,
-    Value(u32),
+    Value(u64),
 }
 
 impl OperationValue {
-    fn resolve_value(&self, old: u32) -> u32 {
+    fn resolve_value(&self, old: u64) -> u64 {
         match self {
             OperationValue::Old => old,
             OperationValue::Value(v) => *v,
@@ -24,7 +24,7 @@ enum Operation {
 }
 
 impl Operation {
-    fn calculate(&self, old: u32) -> u32 {
+    fn calculate(&self, old: u64) -> u64 {
         let (l, r) = match self {
             Operation::Add(l, r) => (l.resolve_value(old), r.resolve_value(old)),
             Operation::Multiply(l, r) => (l.resolve_value(old), r.resolve_value(old)),
@@ -39,25 +39,25 @@ impl Operation {
 
 #[derive(Debug, Clone, Copy)]
 struct ThrowTargets {
-    if_true: u32,
-    if_false: u32,
+    if_true: u64,
+    if_false: u64,
 }
 
 #[derive(Debug, Clone)]
 struct Monkey {
     offset: usize,
-    items: Vec<u32>,
+    items: Vec<u64>,
     operation: Operation,
-    test: u32,
+    test: u64,
     targets: ThrowTargets,
 }
 
 impl Monkey {
-    fn inspect_item(&mut self, worry: u32) -> Option<(u32, u32)> {
+    fn inspect_item(&mut self, worry: u64, hack: u64) -> Option<(u64, u64)> {
         let item = *self.items.get(self.offset)?;
         self.offset += 1;
 
-        let item = self.operation.calculate(item) / worry;
+        let item = (self.operation.calculate(item) / worry) % hack;
 
         if item % self.test == 0 {
             Some((self.targets.if_true, item))
@@ -79,13 +79,13 @@ impl FromStr for Monkey {
 
         lines.next();
 
-        let items: Vec<u32> = lines
+        let items: Vec<u64> = lines
             .next()
             .unwrap()
             .strip_prefix("Starting items: ")
             .unwrap()
             .split(",")
-            .map(|item| item.trim().parse::<u32>().unwrap())
+            .map(|item| item.trim().parse::<u64>().unwrap())
             .collect();
         let mut operation_parts = lines
             .next()
@@ -100,12 +100,12 @@ impl FromStr for Monkey {
         let op = *operation_parts.first().unwrap();
         let left = match operation_parts.get(1) {
             Some(&"old") => OperationValue::Old,
-            Some(val) => OperationValue::Value(val.parse::<u32>().unwrap()),
+            Some(val) => OperationValue::Value(val.parse::<u64>().unwrap()),
             _ => panic!("Unknown operation value"),
         };
         let right = match operation_parts.get(2) {
             Some(&"old") => OperationValue::Old,
-            Some(val) => OperationValue::Value(val.parse::<u32>().unwrap()),
+            Some(val) => OperationValue::Value(val.parse::<u64>().unwrap()),
             _ => panic!("Unknown operation value"),
         };
 
@@ -114,26 +114,26 @@ impl FromStr for Monkey {
             "*" => Operation::Multiply(left, right),
             _ => panic!("Unknown operation {}", op),
         };
-        let test: u32 = lines
+        let test: u64 = lines
             .next()
             .unwrap()
             .strip_prefix("Test: divisible by ")
             .unwrap()
-            .parse::<u32>()
+            .parse::<u64>()
             .unwrap();
         let if_true = lines
             .next()
             .unwrap()
             .strip_prefix("If true: throw to monkey ")
             .unwrap()
-            .parse::<u32>()
+            .parse::<u64>()
             .unwrap();
         let if_false = lines
             .next()
             .unwrap()
             .strip_prefix("If false: throw to monkey ")
             .unwrap()
-            .parse::<u32>()
+            .parse::<u64>()
             .unwrap();
 
         Ok(Monkey {
@@ -148,21 +148,26 @@ impl FromStr for Monkey {
 
 pub fn day11() {
     let part_1 = do_monkey_business(3, 20);
-    // let part_2 = do_monkey_business(1, 1000);
+    let part_2 = do_monkey_business(1, 10000);
 
-    println!("Day 11: {} {}", part_1, 0);
+    println!("Day 11: {} {}", part_1, part_2);
 }
 
-fn do_monkey_business(worry: u32, rounds: u32) -> u32 {
+fn do_monkey_business(worry: u64, rounds: u64) -> u64 {
     let mut monkeys: Vec<Monkey> = INPUT
         .split("\n\n")
         .map(|monkey| monkey.parse::<Monkey>().unwrap())
         .collect();
 
+    let hack = monkeys.iter().map(|m| m.test).reduce(|a, b| a * b).unwrap();
+
+    println!("{}", hack);
+
     for _ in 0..rounds {
         for i in 0..monkeys.len() {
-            let mut thrown: Vec<(u32, u32)> = Vec::new();
-            while let Some((target, value)) = monkeys.get_mut(i).unwrap().inspect_item(worry) {
+            let mut thrown: Vec<(u64, u64)> = Vec::new();
+            while let Some((target, value)) = monkeys.get_mut(i).unwrap().inspect_item(worry, hack)
+            {
                 thrown.push((target, value));
             }
             for (target, value) in thrown {
@@ -171,7 +176,11 @@ fn do_monkey_business(worry: u32, rounds: u32) -> u32 {
         }
     }
 
-    let mut counts: Vec<u32> = monkeys.iter().map(|monkey| monkey.offset as u32).collect();
+    for (i, monkey) in monkeys.iter().enumerate() {
+        println!("Monkey {} inspected {} times", i, monkey.offset)
+    }
+
+    let mut counts: Vec<u64> = monkeys.iter().map(|monkey| monkey.offset as u64).collect();
 
     counts.sort();
 
