@@ -3,6 +3,7 @@ mod day1;
 mod day10;
 mod day11;
 mod day12;
+mod day13;
 mod day2;
 mod day3;
 mod day4;
@@ -29,6 +30,7 @@ fn main() {
         "10" => day10::day10(),
         "11" => day11::day11(),
         "12" => day12::day12(),
+        "13" => day13::day13(),
         _ => println!("Please enter a valid day, saw: {}", day),
     }
 
